@@ -28,11 +28,11 @@ import {
 } from "./ui/dropdown-menu";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import useGetTasks from "@/hooks/useGetTasks";
-import { CellAction } from "./shared/cell-actions";
 import { FullScreenLoader } from "./shared/Loader/FullScreenLoader";
+import { CellAction } from "./shared/cell-actions";
 
 export type Task = {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   status: string;

@@ -11,14 +11,28 @@ import { File, FileInput, MoreVertical } from "lucide-react";
 import { Task } from "../TaskList";
 import useDeleteTask from "@/hooks/useDeleteTask";
 
+import { useNavigate } from "react-router-dom";
+
 interface CellActionProps {
   data: Task;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const deleteMutation = useDeleteTask();
+
+  const navigate = useNavigate();
   const handleDelete = async () => {
-    await deleteMutation.mutateAsync(data.id);
+    if (data.id) {
+      await deleteMutation.mutateAsync(data.id);
+    } else {
+      console.error("Task ID is undefined");
+    }
+  };
+
+  const handleEdit = () => {
+    navigate(
+      `/tasks/edit/${data.id}?title=${data.title}&description=${data.description}&status=${data.status}`,
+    );
   };
 
   return (
@@ -33,7 +47,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <DropdownMenuContent align="center">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-          <DropdownMenuItem className="flex items-center space-x-1 hover:cursor-pointer">
+          <DropdownMenuItem
+            onClick={handleEdit}
+            className="flex items-center space-x-1 hover:cursor-pointer"
+          >
             <File className="mr-2 h-4 w-4" />
             <span>Edit</span>
           </DropdownMenuItem>
