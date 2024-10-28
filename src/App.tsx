@@ -1,12 +1,23 @@
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import "./App.css";
-import Header from "./components/Header";
+import TaskList from "./components/TaskList";
+import LoginPage from "./pages/Login";
+import MainLayout from "./layout/MainLayout";
+import { AddTaskPage } from "./pages/AddTask";
+import RegisterPage from "./pages/Register";
 
-function App() {
+export default function App() {
   return (
-    <div className="container">
-      <Header />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<TaskList />} />
+          <Route path="/tasks/new" element={<AddTaskPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/protected" element={<TaskList />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
