@@ -1,35 +1,19 @@
-# Stage 1: Build stage
-FROM node:18-alpine AS builder
+# This is the newer version
 
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Stage 2: Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+COPY package.json .
 
-# Install only production dependencies
-RUN npm install --production
+RUN npm install
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist ./dist
+RUN npm i -g serve
 
-EXPOSE 5173
+COPY . .
 
-# Start the Vite preview server
-CMD ["npm", "run", "serve"]
+RUN npm run build
+
+EXPOSE 3000
+
+CMD [ "serve", "-s", "dist" ]
