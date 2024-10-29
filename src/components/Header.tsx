@@ -7,12 +7,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function Header() {
-  const { isAuth } = useAuthStore();
+  const { isAuth,logout } = useAuthStore();
+
+
 
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await auth.logout();
+    logout();
     toast.success("Logged out successfully");
     navigate("/login");
   };
