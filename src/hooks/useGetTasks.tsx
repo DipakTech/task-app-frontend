@@ -3,10 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 
 export const TASKS = "TASKS";
 
-const useGetTasks = () => {
+interface GetTasksParams {
+  page?: number;
+  limit?: number;
+}
+
+const useGetTasks = ({ page = 1, limit = 10 }: GetTasksParams = {}) => {
   const { data, isLoading } = useQuery({
     queryKey: [TASKS],
-    queryFn: () => getTasks(),
+    queryFn: () => getTasks({ page, limit }),
   });
 
   return {

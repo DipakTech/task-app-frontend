@@ -13,7 +13,7 @@ const useUpdateTask = () => {
   >({
     mutationFn: ({ id, task }) => updateTask(id, task),
     onError: () => {
-      toast.error("error deleting task");
+      toast.error("error updating task");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

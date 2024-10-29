@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useUpdateTask from "@/hooks/useUpdateTask";
-import { toast } from "react-toastify";
 
 export function EditTaskPage() {
   const { id } = useParams();
@@ -46,7 +45,6 @@ export function EditTaskPage() {
         },
       });
 
-      toast.success("Task updated successfully");
       navigate("/");
     } else {
       console.error("Task ID is undefined");
@@ -54,7 +52,7 @@ export function EditTaskPage() {
   };
 
   return (
-    <div className="max-w-lg w-[550px] mt-10 mx-auto p-4">
+    <div className="max-w-lg w-[550px] mt-10 mx-auto  sm:p-4">
       <Card>
         <CardHeader>
           <CardTitle>Edit Task</CardTitle>

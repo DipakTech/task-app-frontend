@@ -7,6 +7,7 @@ import {
   useReactTable,
   type SortingState,
   ColumnDef,
+  PaginationState,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,17 +34,29 @@ import { CellAction } from "./shared/cell-actions";
 
 export type Task = {
   id?: string;
-  title: string;
-  description: string;
-  status: string;
+  title?: string;
+  description?: string;
+  status?: string;
 };
 
 const TaskList = () => {
-  const { data, isLoading } = useGetTasks();
+  // Pagination state
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const tasks = data?.tasks;
+  // Update useGetTasks to accept pagination parameters
+  const { data, isLoading } = useGetTasks({
+    page: pageIndex + 1, // Convert to 1-based index for API
+    limit: pageSize,
+  });
+
+  const tasks = data?.tasks ?? [];
+  const pagination = data?.pagination;
 
   const columns = useMemo<ColumnDef<Task>[]>(
     () => [
@@ -119,22 +132,29 @@ const TaskList = () => {
   const table = useReactTable({
     data: tasks,
     columns,
+    pageCount: pagination?.totalPages ?? -1,
     state: {
       sorting,
       globalFilter,
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    manualPagination: true, // Enable manual pagination
   });
 
   if (isLoading) return <FullScreenLoader show />;
 
   return (
-    <div className="w-full px-4 max-w-5xl mx-auto flex flex-col mt-10">
-      <div className="flex  justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="w-full px-2 max-w-5xl mx-auto flex flex-col mt-10">
+      <div className="flex justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           Task List
         </h1>
@@ -168,28 +188,24 @@ const TaskList = () => {
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="text-sm text-gray-500 w-full sm:w-auto">
-          {table.getFilteredRowModel().rows.length} tasks found
+          {pagination?.totalItems ?? 0} tasks total
         </div>
       </div>
 
-      <div className="border rounded-lg overflow-hidden px-4 bg-white shadow-sm">
+      <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
         <div className="overflow-x-auto">
           <Table className="w-full min-w-full">
             <TableHeader>
@@ -198,7 +214,7 @@ const TaskList = () => {
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="px-4 sm:px-6 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider hover:bg-gray-100 transition-colors"
+                      className="px-4 sm:px-6 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider transition-colors"
                     >
                       {header.isPlaceholder
                         ? null
@@ -211,17 +227,14 @@ const TaskList = () => {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody className="divide-y divide-gray-200">
-              {table.getRowModel().rows.length > 0 ? (
+            <TableBody className="divide-y px-4 divide-gray-200">
+              {tasks.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
+                  <TableRow key={row.id} className="transition-colors">
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="px-2 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words"
+                        className="px-2 py-1 sm:py-2 text-xs sm:text-sm text-gray-900 break-words"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -245,13 +258,17 @@ const TaskList = () => {
           </Table>
         </div>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+
+      <div className="flex items-center justify-between py-4">
+        <div className="text-sm text-gray-500">
+          Page {pagination?.currentPage} of {pagination?.totalPages}
+        </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            disabled={!pagination?.hasPrevPage}
           >
             Previous
           </Button>
@@ -259,7 +276,7 @@ const TaskList = () => {
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={!pagination?.hasNextPage}
           >
             Next
           </Button>
